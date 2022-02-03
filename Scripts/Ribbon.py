@@ -232,7 +232,9 @@ def CreateRibbon(ribbonName, ribbonLength, ribbonOrientation, ribbonDirection, c
 		cmds.parent(driverGroup, controlGroup, f'{ribbonName}_grp')
 
 		# Skin the driver joints to the nurbs plane
-		#cmds.select(driverJoints, replace=True)
-		#cmds.select(ribbonName, add=True)
+		cmds.select(clear=True)
+		cmds.select(driverJoints)
+		cmds.select(ribbonName, add=True)
+		cmds.skinCluster(name=f'{ribbonName}_skinCluster', bindMethod=0, maximumInfluences=4, normalizeWeights=1, obeyMaxInfluences=True, removeUnusedInfluence=True, toSelectedBones=True)
 
 	cmds.select(clear=True)

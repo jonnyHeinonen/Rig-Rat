@@ -51,30 +51,25 @@ def IkFkUiData(*args):
 	elif systemChoice == 'Biped - Leg':
 		globalControlName = f'{side[0].lower()}_leg_ctrl'
 		globalFixGroupName = f'{side[0].lower()}_leg_fixGroup'
-	# Add a number to the name if it already exists
 	transformNodes = cmds.ls(transforms=True)
-	if globalControlName in transformNodes:
-		globalControlName = globalControlName + '1'
-		globalFixGroupName = globalFixGroupName + '1'
-	# Keep adding to the number if it still exists
-	while globalControlName in transformNodes:
-		controlNumber = int(globalControlName[:-1])
-		fixGroupNumber = int(globalFixGroupName[:-1])
-		globalControlName = globalControlName[-1:] + str(controlNumber+1)
-		globalFixGroupName = globalFixGroupName[-1:] + str(fixGroupNumber+1)
 	# Set the names to the custom input
 	if not customGlobalControlName == '':
-		# Alert the user if it already exists and stop the script
-		if customGlobalControlName in transformNodes:
-			cmds.inViewMessage(assistMessage=f'<hl>{customGlobalControlName} already exists</hl>.', position='midCenter', fade=True, clickKill=True)
-			cmds.error(f'{customGlobalControlName} already exists.')
 		customControlUnderscoreIndexList = []
 		for index,letter in enumerate(customGlobalControlName):
 			if letter == '_':
 				customControlUnderscoreIndexList.append(index)
 		if customControlUnderscoreIndexList:
-			globalControlName = customGlobalControlName
 			globalFixGroupName = f'{customGlobalControlName[:customControlUnderscoreIndexList[-1]]}_fixGroup'
+		else:
+			globalFixGroupName = f'{customGlobalControlName}_fixGroup'
+		globalControlName = customGlobalControlName
+	# Alert the user if it already exists and stop the script
+	if globalControlName in transformNodes:
+		cmds.inViewMessage(assistMessage=f'<hl>{globalControlName} already exists</hl>.', position='midCenter', fade=True, clickKill=True)
+		cmds.error(f'{globalControlName} already exists.')
+	if globalFixGroupName in transformNodes:
+		cmds.inViewMessage(assistMessage=f'<hl>{globalFixGroupName} already exists</hl>.', position='midCenter', fade=True, clickKill=True)
+		cmds.error(f'{globalFixGroupName} already exists.')
 
 	# 1=joint and 2=world
 	ikControlOrientation = cmds.radioButtonGrp('ikControlOrientation', query=True, select=True)

@@ -97,18 +97,18 @@ def Window():
 	cmds.floatSliderGrp('controlSize', label='Control Size	', field=True, columnWidth3=(93,40,10), min=0.01, max=20, fieldMaxValue=100, value=1, changeCommand=DoNothing)
 	cmds.button('updateControlSize', label="Update Selected's Size", command=UpdateControlSize)
 	cmds.checkBox('updateControlSizeLive', label='Update Live', changeCommand=UpdateControlSizeLive)
-	cmds.symbolButton('shape01', image='rigRatCircle.png', width=35, command=CreateControlCircle)
-	cmds.symbolButton('shape02', image='rigRatSquare.png', width=35, command=CreateControlSquare)
-	cmds.symbolButton('shape03', image='rigRatRomb.png', width=35, command=CreateControlRomb)
-	cmds.symbolButton('shape04', image='rigRatPlus.png', width=35, command=CreateControlPlus)
-	cmds.symbolButton('shape05', image='rigRatArrow.png', width=35, command=CreateControlArrow)
-	cmds.symbolButton('shape06', image='rigRatLollipop.png', width=35, command=CreateControlLollipop)
-	cmds.symbolButton('shape07', image='rigRatCube.png', width=35, command=CreateControlCube)
-	cmds.symbolButton('shape08', image='rigRatSphere.png', width=35, command=CreateControlSphere)
-	cmds.symbolButton('shape09', image='rigRatOrient.png', width=35, command=CreateControlOrient)
-	cmds.symbolButton('shape10', image='rigRatOrientHalf.png', width=35, command=CreateControlOrientHalf)
-	cmds.symbolButton('shape11', image='rigRatArrows.png', width=35, command=CreateControlArrows)
-	cmds.symbolButton('shape12', image='rigRatCuteHead.png', width=35, command=CreateControlCuteHead)
+	cmds.symbolButton('shape01', image='rigRatCircle.png', width=35, command=CreateControlCircle, annotation='Create at origo or on selected object/s')
+	cmds.symbolButton('shape02', image='rigRatSquare.png', width=35, command=CreateControlSquare, annotation='Create at origo or on selected object/s')
+	cmds.symbolButton('shape03', image='rigRatRomb.png', width=35, command=CreateControlRomb, annotation='Create at origo or on selected object/s')
+	cmds.symbolButton('shape04', image='rigRatPlus.png', width=35, command=CreateControlPlus, annotation='Create at origo or on selected object/s')
+	cmds.symbolButton('shape05', image='rigRatArrow.png', width=35, command=CreateControlArrow, annotation='Create at origo or on selected object/s')
+	cmds.symbolButton('shape06', image='rigRatLollipop.png', width=35, command=CreateControlLollipop, annotation='Create at origo or on selected object/s')
+	cmds.symbolButton('shape07', image='rigRatCube.png', width=35, command=CreateControlCube, annotation='Create at origo or on selected object/s')
+	cmds.symbolButton('shape08', image='rigRatSphere.png', width=35, command=CreateControlSphere, annotation='Create at origo or on selected object/s')
+	cmds.symbolButton('shape09', image='rigRatOrient.png', width=35, command=CreateControlOrient, annotation='Create at origo or on selected object/s')
+	cmds.symbolButton('shape10', image='rigRatOrientHalf.png', width=35, command=CreateControlOrientHalf, annotation='Create at origo or on selected object/s')
+	cmds.symbolButton('shape11', image='rigRatArrows.png', width=35, command=CreateControlArrows, annotation='Create at origo or on selected object/s')
+	cmds.symbolButton('shape12', image='rigRatCuteHead.png', width=35, command=CreateControlCuteHead, annotation='Create at origo or on selected object/s')
 	cmds.button('replaceControlShape', label="Replace Selected Control's Shape", command=replaceControlShape, annotation='Select the new control followed by the one to be replaced')
 	cmds.button('SelectControlCvs', label="Select Control CV's", command=SelectControlCvs)
 	cmds.separator('separator02', height=10)
@@ -251,6 +251,11 @@ def Window():
 							onCommand2=LocatorOrJointOnCenter, offCommand2=LocatorOrJointOnCenter)
 	cmds.textFieldGrp('locatorJointName', label='Name:	', columnWidth2=(75,225))
 	cmds.button('buildLocatorOrJoint', label="Create Locator/Joint", width=108, command=CreateLocatorJointOnCenter)
+	cmds.text('jointsTooltip', label='Tooltip')
+	cmds.text('jointsTooltipContent1', wordWrap=True, label='If joints created with this tool disappear:')
+	cmds.text('jointsTooltipContent2', wordWrap=True, label="Create a joint with Maya's own tool.")
+	cmds.text('jointsTooltipContent3', wordWrap=True, label='Tends to happen when origo is not in the viewport')
+	cmds.text('jointsTooltipContent4', wordWrap=True, label="until Maya's tool is used.")
 	'''
 	# Joint Orientation
 	cmds.separator('separator03', height=10, style='in')
@@ -342,6 +347,26 @@ def Window():
 																	('buildLocatorOrJoint', 'top', 345),
 																	('buildLocatorOrJoint', 'left', 20),
 																	('buildLocatorOrJoint', 'right', 20),
+
+																	('jointsTooltip', 'top', 395),
+																	('jointsTooltip', 'left', 20),
+																	('jointsTooltip', 'right', 20),
+
+																	('jointsTooltipContent1', 'top', 415),
+																	('jointsTooltipContent1', 'left', 20),
+																	('jointsTooltipContent1', 'right', 20),
+
+																	('jointsTooltipContent2', 'top', 430),
+																	('jointsTooltipContent2', 'left', 20),
+																	('jointsTooltipContent2', 'right', 20),
+
+																	('jointsTooltipContent3', 'top', 450),
+																	('jointsTooltipContent3', 'left', 20),
+																	('jointsTooltipContent3', 'right', 20),
+
+																	('jointsTooltipContent4', 'top', 465),
+																	('jointsTooltipContent4', 'left', 20),
+																	('jointsTooltipContent4', 'right', 20)
 																	
 																	# Joint Orientation
 																	#('separator03', 'top', 375),
@@ -444,7 +469,7 @@ def Window():
 	cmds.menuItem(label='Left')
 	cmds.menuItem(label='Right')
 	cmds.menuItem(label='Center')
-	cmds.textFieldGrp('customGlobalControlName', enable=False, label='Custom Global Control:', placeholderText='l_arm_ctrl', columnWidth2=(129,200))
+	cmds.textFieldGrp('customGlobalControlName', enable=False, label='Global Control Name:', placeholderText='l_arm_ctrl', columnWidth2=(129,200))
 	cmds.radioButtonGrp('ikControlOrientation', enable=False, label='IK Control Orientation', numberOfRadioButtons=2, labelArray2=('Joint','World'), select=1, columnWidth3=(128,60,60))
 	cmds.checkBoxGrp('twistStretchCheck', enable=False, label='Addons	', numberOfCheckBoxes=2, labelArray2=['Twist', 'Stretch'], columnWidth3=[127,60,50], changeCommand1=TwistSetting)
 	cmds.intSliderGrp('twistJointAmount', enable=False, label='Twist Joint Amount	', field=True, columnWidth3=(128,40,10), min=2, max=4, fieldMaxValue=10, value=2)
@@ -454,6 +479,11 @@ def Window():
 	cmds.colorIndexSliderGrp('ikFkControlColor', label='Control Color	', columnWidth3=(90,80,100), width=350, min=0, max=20, value=6)
 	cmds.floatSliderGrp('ikFkControlSize', label='Control Size	', field=True, columnWidth3=(90,40,10), min=1, max=20, fieldMaxValue=100, value=1)
 	cmds.button('buildIkFk', label="Build FK or IK/FK", width=108, command=IkFkUiData)
+	cmds.text('limbTooltip', label='Tooltip')
+	cmds.text('limbTooltipContent1', wordWrap=True, label='The joints require a prefix and suffix indicated with an an "_"')
+	cmds.text('limbTooltipContent2', wordWrap=True, label='Eg. "l_armUpper_jnt"')
+	cmds.text('limbTooltipContent3', wordWrap=True, label='Select the first and last joint in the limb chain.')
+	cmds.text('limbTooltipContent4', wordWrap=True, label='Eg. the left upper arm and left wrist.')
 
 	limbTab = cmds.formLayout( 'limbForm', edit=True, attachForm=[
 																	('separator01', 'top', 0),
@@ -504,7 +534,27 @@ def Window():
 
 																	('buildIkFk', 'top', 325),
 																	('buildIkFk', 'left', 20),
-																	('buildIkFk', 'right', 20)
+																	('buildIkFk', 'right', 20),
+
+																	('limbTooltip', 'top', 385),
+																	('limbTooltip', 'left', 20),
+																	('limbTooltip', 'right', 20),
+
+																	('limbTooltipContent1', 'top', 405),
+																	('limbTooltipContent1', 'left', 20),
+																	('limbTooltipContent1', 'right', 20),
+
+																	('limbTooltipContent2', 'top', 420),
+																	('limbTooltipContent2', 'left', 20),
+																	('limbTooltipContent2', 'right', 20),
+
+																	('limbTooltipContent3', 'top', 440),
+																	('limbTooltipContent3', 'left', 20),
+																	('limbTooltipContent3', 'right', 20),
+
+																	('limbTooltipContent4', 'top', 455),
+																	('limbTooltipContent4', 'left', 20),
+																	('limbTooltipContent4', 'right', 20)
 																	] )
 	cmds.setParent( '..' )
 	'''
@@ -529,7 +579,7 @@ def Window():
 	cmds.radioButtonGrp('ribbonDirection', label='Ribbon Direction	', numberOfRadioButtons=2, labelArray2=('Horizontal','Vertical'), select=1, columnWidth3=(118,82,80), 
 							annotation='If orientation = Y, then "Horizontal" lays the ribbon along the X axis "Vertical" lays it along the Z axis.')
 	cmds.intSliderGrp('ribbonJointNumber', label='Joint Number	', field=True, columnWidth3=(95,40,10), min=3, max=20, fieldMaxValue=100, value=1)
-	cmds.text('ribbonJointOrientText', label='Joint Axis Along Ribbon:')
+	cmds.text('ribbonJointOrientText', label='Joint Axis Aimed Along Ribbon:')
 	cmds.radioButtonGrp('ribbonJointOrient', numberOfRadioButtons=3, labelArray3=('X','Y','Z'), select=1, columnWidth3=(40,40,40))
 	cmds.checkBox('invertRibbonJointOrient', label='Invert')
 	cmds.checkBoxGrp('ribbonAddControls', label='Add Controls	', columnWidth2=(117,40), changeCommand1=AddControls)

@@ -112,13 +112,14 @@ def CreateLocatorJointOnCenter(*args):
 	locatorOrJoint = cmds.radioButtonGrp('locatorOrJoint', query=True, select=True)
 	locatorJointName = cmds.textFieldGrp('locatorJointName', query=True, text=True)
 
-	selection = cmds.ls(selection=True)
-	if not selection:
-		cmds.error('Nothing is selected.')
-
 	transformNodes = cmds.ls(transforms=True)
 	if locatorJointName in transformNodes:
+		cmds.inViewMessage(assistMessage=f'<hl>{locatorJointName} already exists</hl>.', position='midCenter', fade=True, clickKill=True)
 		cmds.error(f'{locatorJointName} already exists.')
+
+	selection = cmds.ls(selection=True)
+	if not selection:
+		cmds.inViewMessage(assistMessage=f'<hl>Nothing selected\n\nCreated at origo</hl>.', position='midCenter', fade=True, clickKill=True)
 
 	# Set a default name and add a number to avoid name clashing.
 	if not locatorJointName:
@@ -135,17 +136,19 @@ def CreateLocatorJointOnCenter(*args):
 
 	# -------------------------------------------------------------------------------------------------------------------
 	# Create the locator or joint
-	cmds.cluster(name='centerPoint_cluster')
-	cmds.select(clear=True)
+	if selection:
+		cmds.cluster(name='centerPoint_cluster')
+		cmds.select(clear=True)
 	if locatorOrJoint == 1:
 		cmds.spaceLocator(name=locatorJointName)
-		cmds.pointConstraint('centerPoint_clusterHandle', locatorJointName, name='tempOnCenterPointConstraint')
 	if locatorOrJoint == 2:
 		cmds.joint(name=locatorJointName, rotationOrder=jointRotationOrder)
-		cmds.pointConstraint('centerPoint_clusterHandle', locatorJointName, name='tempOnCenterPointConstraint')
 
 		# Edit Rig Rat Attributes
-		RigRatAttributes(jointName, 'joint', 'undefined', 'undefined', 'undefined', 'undefined')
+		RigRatAttributes(locatorJointName, 'joint', 'undefined', 'undefined', 'undefined', 'undefined')
 
-	cmds.delete('centerPoint_clusterHandle', 'tempOnCenterPointConstraint')
+	if selection:
+		cmds.pointConstraint('centerPoint_clusterHandle', locatorJointName, name='tempOnCenterPointConstraint')
+		cmds.delete('centerPoint_clusterHandle', 'tempOnCenterPointConstraint')
+
 	cmds.select(clear=True)

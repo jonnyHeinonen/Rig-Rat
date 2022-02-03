@@ -13,6 +13,7 @@
 # ====================================================================================================================
 
 import maya.cmds as cmds
+import sys
 from RigRatToolkit.Menu import RigRatAttributes
 
 # ====================================================================================================================
@@ -263,7 +264,11 @@ def UpdateControlSize(*args):
 		controlSize = cmds.floatSliderGrp('controlSize', query=True, value=True)
 
 		for item in selection:
-			numberOfCvs = cmds.getAttr(f'{item}.degree') + cmds.getAttr(f'{item}.spans')
+			try:
+				numberOfCvs = cmds.getAttr(f'{item}.degree') + cmds.getAttr(f'{item}.spans')
+			except:
+				cmds.inViewMessage(assistMessage=f'<hl>{item} is not a nurbs curve</hl>.', position='midCenter', fade=True, clickKill=True)
+				cmds.error(f'{controlName} is not a nurbs curve.')
 			controlCvs = cmds.select(f'{item}.cv[0:{numberOfCvs-1}]', replace=True)
 			cmds.scale(controlSize,controlSize,controlSize)
 			cmds.select(selection)
@@ -286,18 +291,24 @@ def UpdateControlSize(*args):
 
 def replaceControlShape(*args):
 
-	# selection[0] is the new control and selection[1] is the one to be replaced
-	selection = cmds.ls(selection=True, transforms=True)
-	cmds.matchTransform(selection[0], selection[1])
+	tooltipCheck = cmds.framelessDialog( title='Confirm', button=['OK', 'CANCEL'], primary=['OK'],
+		message='Make sure both controls are in the same position in world space and are zeroed out (frozen).\n\nThe resulting control could become invisible when executing the script, but moving it and undoing the movement should make it visible.')
 
-	for item in selection:
-		cmds.makeIdentity(item, apply=True)
+	if tooltipCheck == 'CANCEL':
+		sys.exit()
+	elif tooltipCheck == 'OK':
+		# selection[0] is the new control and selection[1] is the one to be replaced
+		selection = cmds.ls(selection=True, transforms=True)
+		cmds.matchTransform(selection[0], selection[1])
 
-	newShapes = cmds.listRelatives(selection[0])
-	oldShapes = cmds.listRelatives(selection[1])
+		for item in selection:
+			cmds.makeIdentity(item, apply=True)
 
-	cmds.parent(newShapes, selection[1], relative=True, shape=True)
-	cmds.delete(selection[0], oldShapes)
+		newShapes = cmds.listRelatives(selection[0])
+		oldShapes = cmds.listRelatives(selection[1])
+
+		cmds.parent(newShapes, selection[1], relative=True, shape=True)
+		cmds.delete(selection[0], oldShapes)
 
 # ====================================================================================================================
 #
@@ -323,7 +334,11 @@ def SelectControlCvs(*args):
 	
 	if selection:
 		for item in selection:
-			numberOfCvs = cmds.getAttr(f'{item}.degree') + cmds.getAttr(f'{item}.spans')
+			try:
+				numberOfCvs = cmds.getAttr(f'{item}.degree') + cmds.getAttr(f'{item}.spans')
+			except:
+				cmds.inViewMessage(assistMessage=f'<hl>{item} is not a nurbs curve</hl>.', position='midCenter', fade=True, clickKill=True)
+				cmds.error(f'{controlName} is not a nurbs curve.')
 			controlCvs.append(f'{item}.cv[0:{numberOfCvs-1}]')
 		cmds.selectMode(component=True)
 		cmds.select(controlCvs)
