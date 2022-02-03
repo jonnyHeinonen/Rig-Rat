@@ -55,8 +55,18 @@ def CreateControl(controlChoice):
 		controlName = 'curve1'
 		while controlName in transformNodes:
 			controlNumber = int(controlName[5:])
-			controlName = 'curve' + str(controlNumber+1)
-	fixGroupName = f'{controlName}_fixGroup'
+			controlName = f'curve{str(controlNumber+1)}'
+		fixGroupName = f'{controlName}_fixGroup'
+
+	elif controlName:
+		controlNameUnderscoreIndexList = []
+		for index,letter in enumerate(controlName):
+			if letter == '_':
+				controlNameUnderscoreIndexList.append(index)
+		if controlNameUnderscoreIndexList:
+			fixGroupName = f'{controlName[:controlNameUnderscoreIndexList[-1]]}_fixGroup'
+		else:
+			fixGroupName = f'{controlName}_fixGroup'
 
 	selection = cmds.ls(selection=True)
 
