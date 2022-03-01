@@ -49,7 +49,7 @@ import maya.cmds as cmds
 from RigRatToolkit.Controls import *
 from RigRatToolkit.Joints import *
 from RigRatToolkit.IkFk import IkFkUiData
-from RigRatToolkit.Addons import *
+from RigRatToolkit.Experimental import *
 from RigRatToolkit.Ribbon import RibbonUiData
 
 # ====================================================================================================================
