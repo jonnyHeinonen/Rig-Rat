@@ -4,7 +4,7 @@
 #
 # - Put the "RigRatToolkit" folder in your scripts folder, eg. \Documents\maya\2022\scripts
 # - Put the images from the "Icons" folder in your icons folder, eg. \Documents\maya\2022\prefs\icons
-# - Create a new button on the Maya shelf with the following code:
+# - Create a new button on the Maya shelf with the following Python code:
 #
 #----------------------------------------------------------------------------------------------------------------------------
 
