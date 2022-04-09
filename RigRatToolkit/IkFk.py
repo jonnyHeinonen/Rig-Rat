@@ -115,6 +115,8 @@ def IkFkUiData(*args):
 	endJointIndex = jointChildren.index(selection[1])
 	jointHierarchy = [selection[0]] + jointChildren[:endJointIndex+1]
 
+	systemController =  cmds.textFieldGrp('constraintSystemTo', query=True, text=True)
+
 	# -------------------------------------------------------------------------------------------------------------------
 	# Delete unused variables
 	del customGlobalControlName
@@ -133,11 +135,11 @@ def IkFkUiData(*args):
 
 	# -------------------------------------------------------------------------------------------------------------------
 	if fkOrIkFk == 1:
-		FkSystem(jointPrimaryAxis, controlColor, controlSize, jointHierarchy)
+		FkSystem(jointPrimaryAxis, controlColor, controlSize, jointHierarchy, systemController)
 	elif fkOrIkFk == 2 and 'Biped' in systemChoice:
-		IkFkBipedSystem(systemChoice, side, globalControlName, globalFixGroupName, ikControlOrientation, stretchOption, jointPrimaryAxis, controlColor, controlSize, jointHierarchy)
+		IkFkBipedSystem(systemChoice, side, globalControlName, globalFixGroupName, ikControlOrientation, stretchOption, jointPrimaryAxis, controlColor, controlSize, jointHierarchy, systemController)
 	elif fkOrIkFk == 2 and 'Quadruped' in systemChoice:
-		IkFkQuadrupedSystem(systemChoice, side, globalControlName, globalFixGroupName, ikControlOrientation, stretchOption, jointPrimaryAxis, controlColor, controlSize, jointHierarchy)
+		IkFkQuadrupedSystem(systemChoice, side, globalControlName, globalFixGroupName, ikControlOrientation, stretchOption, jointPrimaryAxis, controlColor, controlSize, jointHierarchy, systemController)
 	if twistOption == 1 and 'Biped' in systemChoice:
 		TwistBipedSetup(systemChoice, side, globalControlName, twistJointAmount, jointPrimaryAxis, jointHierarchy)
 	if stretchOption == 1 and 'Biped' in systemChoice:
@@ -146,7 +148,7 @@ def IkFkUiData(*args):
 # ====================================================================================================================
 #
 # SIGNATURE:
-#	FkSystem(jointPrimaryAxis, controlColor, controlSize, jointHierarchy)
+#	FkSystem(jointPrimaryAxis, controlColor, controlSize, jointHierarchy, systemController)
 #
 # DESCRIPTION:
 #	
@@ -159,7 +161,7 @@ def IkFkUiData(*args):
 #
 # ====================================================================================================================
 
-def FkSystem(jointPrimaryAxis, controlColor, controlSize, jointHierarchy):
+def FkSystem(jointPrimaryAxis, controlColor, controlSize, jointHierarchy, systemController):
 
 	cmds.select(clear=True)
 
@@ -199,10 +201,13 @@ def FkSystem(jointPrimaryAxis, controlColor, controlSize, jointHierarchy):
 		# Edit Rig Rat Attributes
 		RigRatAttributes(controlName, 'control', 'fk', str(jointHierarchy.index(joint)+1), 'undefined', 'undefined')
 
-		# Create the system holder group
+		# Create the system holder group and constraint the first control to the system controller
 		if joint == jointHierarchy[0]:
 			systemsGroupContainer = f'FK_SYSTEM_{jointName}'
 			cmds.group(jointName, name=systemsGroupContainer, world=True)
+			print(systemController)
+			if systemController:
+				cmds.parentConstraint(systemController, fixGroupName, maintainOffset=True)
 		cmds.parent(fixGroupName, systemsGroupContainer)
 
 		cmds.parentConstraint(controlName, jointName)
@@ -220,7 +225,7 @@ def FkSystem(jointPrimaryAxis, controlColor, controlSize, jointHierarchy):
 # ====================================================================================================================
 #
 # SIGNATURE:
-#	IkFkBipedSystem(systemChoice, side, globalControlName, globalFixGroupName, ikControlOrientation, stretchOption, jointPrimaryAxis, controlColor, controlSize, jointHierarchy)
+#	IkFkBipedSystem(systemChoice, side, globalControlName, globalFixGroupName, ikControlOrientation, stretchOption, jointPrimaryAxis, controlColor, controlSize, jointHierarchy, systemController)
 #
 # DESCRIPTION:
 #	
@@ -233,7 +238,7 @@ def FkSystem(jointPrimaryAxis, controlColor, controlSize, jointHierarchy):
 #
 # ====================================================================================================================
 
-def IkFkBipedSystem(systemChoice, side, globalControlName, globalFixGroupName, ikControlOrientation, stretchOption, jointPrimaryAxis, controlColor, controlSize, jointHierarchy):
+def IkFkBipedSystem(systemChoice, side, globalControlName, globalFixGroupName, ikControlOrientation, stretchOption, jointPrimaryAxis, controlColor, controlSize, jointHierarchy, systemController):
 
 	# List the created IK and FK joints
 	createdJoints = []
@@ -280,11 +285,15 @@ def IkFkBipedSystem(systemChoice, side, globalControlName, globalFixGroupName, i
 				RigRatAttributes(controlName, 'control', 'fk', str(jointHierarchy.index(joint)+1), side.lower(), systemChoice[8:].lower())
 
 				# Create and parent the first FK joint the "SYSTEMS" holder group
+				# Also constraint the system controller to the first fk control and the "SYSTEMS" holder group
 				if joint == jointHierarchy[0]:
 					systemsGroupContainer = f'{side.upper()}_{systemChoice[8:].upper()}_SYSTEMS'
 					cmds.group(jointName, name=systemsGroupContainer, world=True)
 					controlsGroupContainer = f'{side.upper()}_{systemChoice[8:].upper()}_CTRLS'
 					cmds.group(name=controlsGroupContainer, empty=True, world=True)
+					if systemController:
+						cmds.parentConstraint(systemController, systemsGroupContainer, maintainOffset=True)
+						cmds.parentConstraint(systemController, fixGroupName, maintainOffset=True)						
 				# Create and parent the FK controls to the "CTRLS" holder group
 				cmds.parent(fixGroupName, controlsGroupContainer)
 
@@ -447,7 +456,7 @@ def IkFkBipedSystem(systemChoice, side, globalControlName, globalFixGroupName, i
 # ====================================================================================================================
 #
 # SIGNATURE:
-#	IkFkQuadrupedSystem(systemChoice, side, globalControlName, globalFixGroupName, ikControlOrientation, jointPrimaryAxis, controlColor, controlSize, jointHierarchy)
+#	IkFkQuadrupedSystem(systemChoice, side, globalControlName, globalFixGroupName, ikControlOrientation, jointPrimaryAxis, controlColor, controlSize, jointHierarchy, systemController)
 #
 # DESCRIPTION:
 #
@@ -460,7 +469,7 @@ def IkFkBipedSystem(systemChoice, side, globalControlName, globalFixGroupName, i
 #
 # ====================================================================================================================
 
-def IkFkQuadrupedSystem(systemChoice, side, globalControlName, globalFixGroupName, ikControlOrientation, jointPrimaryAxis, controlColor, controlSize, jointHierarchy):
+def IkFkQuadrupedSystem(systemChoice, side, globalControlName, globalFixGroupName, ikControlOrientation, jointPrimaryAxis, controlColor, controlSize, jointHierarchy, systemController):
 	print('IkFkQuad')
 
 # ====================================================================================================================
@@ -512,23 +521,26 @@ def TwistBipedSetup(systemChoice, side, globalControlName, twistJointAmount, joi
 	# Measure the distance between the first and second joint (eg. shoulder and elbow)
 	startPoint = cmds.xform(jointHierarchy[0], query=True, translation=True, worldSpace=True)
 	endPoint = cmds.xform(jointHierarchy[1], query=True, translation=True, worldSpace=True)
-	cmds.distanceDimension(startPoint=startPoint, endPoint=endPoint)
-	totalDistance = cmds.getAttr('distanceDimension1.distance')
+	stretchDistanceShape = cmds.distanceDimension(startPoint=startPoint, endPoint=endPoint)
+	stretchDistance = cmds.listRelatives(stretchDistanceShape, parent=True)
+	stretchStartLoc = cmds.listConnections(stretchDistanceShape, connections=True)[1]
+	stretchEndLoc = cmds.listConnections(stretchDistanceShape, connections=True)[3]
+	totalDistance = cmds.getAttr(f'{stretchDistanceShape}.distance')
 	distancePerJoint = f'{jointHierarchy[0][:jointUnderscoreIndexList[-1]]}_twistPlacement_divide'
 	cmds.createNode('multiplyDivide', skipSelect=True, name=distancePerJoint)
 	cmds.setAttr(f'{distancePerJoint}.operation', 2)
-	cmds.connectAttr('distanceDimension1.distance', f'{distancePerJoint}.input1.input1X')
+	cmds.connectAttr(f'{stretchDistanceShape}.distance', f'{distancePerJoint}.input1.input1X')
 	cmds.setAttr(f'{distancePerJoint}.input2.input2X', twistJointAmount)
 
 	# Group and constrain distance measuring nodes
-	cmds.parent('distanceDimension1', 'locator1', 'locator2', distanceGroup)
-	cmds.pointConstraint(jointHierarchy[0], 'locator1')
-	cmds.pointConstraint(jointHierarchy[1], 'locator2')
+	cmds.parent(stretchDistance, stretchStartLoc, stretchEndLoc, distanceGroup)
+	cmds.pointConstraint(jointHierarchy[0], stretchStartLoc)
+	cmds.pointConstraint(jointHierarchy[1], stretchEndLoc)
 
 	# Rename distance measuring nodes
-	cmds.rename('distanceDimension1', f'{side.lower()}_{systemChoice[8:].lower()}_twist1_distance')
-	cmds.rename('locator1', f'{side.lower()}_{systemChoice[8:].lower()}_twist_distanceStart_loc')
-	cmds.rename('locator2', f'{side.lower()}_{systemChoice[8:].lower()}_twist_distanceMiddle_loc')
+	cmds.rename(stretchDistance, f'{side.lower()}_{systemChoice[8:].lower()}_twist1_distance')
+	cmds.rename(stretchStartLoc, f'{side.lower()}_{systemChoice[8:].lower()}_twist_distanceStart_loc')
+	cmds.rename(stretchEndLoc, f'{side.lower()}_{systemChoice[8:].lower()}_twist_distanceMiddle_loc')
 
 	# -------------------------------------------------------------------------------------------------------------------
 	# Create the rotation extractor joints
@@ -648,21 +660,23 @@ def TwistBipedSetup(systemChoice, side, globalControlName, twistJointAmount, joi
 	# Measure the distance between the second and third joint (eg. elbow to wrist)
 	startPoint = cmds.xform(jointHierarchy[1], query=True, translation=True, worldSpace=True)
 	endPoint = cmds.xform(jointHierarchy[2], query=True, translation=True, worldSpace=True)
-	cmds.distanceDimension(startPoint=startPoint, endPoint=endPoint)
-	totalDistance = cmds.getAttr('distanceDimension1.distance')
+	stretchDistanceShape = cmds.distanceDimension(startPoint=startPoint, endPoint=endPoint)
+	stretchDistance = cmds.listRelatives(stretchDistanceShape, parent=True)
+	stretchEndLoc = cmds.listConnections(stretchDistanceShape, connections=True)[3]
+	totalDistance = cmds.getAttr(f'{stretchDistanceShape}.distance')
 	distancePerJoint = f'{jointHierarchy[1][:jointUnderscoreIndexList[-1]]}_twistPlacement_divide'
 	cmds.createNode('multiplyDivide', skipSelect=True, name=distancePerJoint)
 	cmds.setAttr(f'{distancePerJoint}.operation', 2)
-	cmds.connectAttr('distanceDimension1.distance', f'{distancePerJoint}.input1.input1X')
+	cmds.connectAttr(f'{stretchDistanceShape}.distance', f'{distancePerJoint}.input1.input1X')
 	cmds.setAttr(f'{distancePerJoint}.input2.input2X', twistJointAmount)
 
 	# Group and constrain distance measuring nodes
-	cmds.parent('distanceDimension1', 'locator1', distanceGroup)
-	cmds.pointConstraint(jointHierarchy[2], 'locator1')
+	cmds.parent(stretchDistance, stretchEndLoc, distanceGroup)
+	cmds.pointConstraint(jointHierarchy[2], stretchEndLoc)
 
 	# Rename distance measuring nodes
-	cmds.rename('distanceDimension1', f'{side.lower()}_{systemChoice[8:].lower()}_twist2_distance')
-	cmds.rename('locator1', f'{side.lower()}_{systemChoice[8:].lower()}_twist_distanceEnd_loc')
+	cmds.rename(stretchDistance, f'{side.lower()}_{systemChoice[8:].lower()}_twist2_distance')
+	cmds.rename(stretchEndLoc, f'{side.lower()}_{systemChoice[8:].lower()}_twist_distanceEnd_loc')
 
 	# -------------------------------------------------------------------------------------------------------------------
 	# Create the rotation extractor joints
@@ -782,14 +796,17 @@ def StretchBipedSetup(systemChoice, side, globalControlName, jointPrimaryAxis, j
 		jointPrimaryAxisLetter = 'Z'
 
 	# Measure the distance between the second and third joint (eg. elbow to wrist)
-	cmds.distanceDimension(startPoint=(0,0,0), endPoint=(1,0,0))
-	cmds.matchTransform('locator1', jointHierarchy[0], position=True, rotation=False, scale=False)
-	cmds.matchTransform('locator2', jointHierarchy[2], position=True, rotation=False, scale=False)
+	stretchDistanceShape = cmds.distanceDimension(startPoint=(100000,-0.5,0), endPoint=(100001,-0.5,0))
+	stretchDistance = cmds.listRelatives(stretchDistanceShape, parent=True)
+	stretchStartLoc = cmds.listConnections(stretchDistanceShape, connections=True)[1]
+	stretchEndLoc = cmds.listConnections(stretchDistanceShape, connections=True)[3]
+	cmds.matchTransform(stretchStartLoc, jointHierarchy[0], position=True, rotation=False, scale=False)
+	cmds.matchTransform(stretchEndLoc, jointHierarchy[2], position=True, rotation=False, scale=False)
 
 	# Limb length at resting position
 	limbLength = 0
 	for joint in jointHierarchy[1:]:
-		limbLength += cmds.getAttr(f'{joint}.translate{jointPrimaryAxisLetter}')
+		limbLength += abs(cmds.getAttr(f'{joint}.translate{jointPrimaryAxisLetter}'))
 
 	# Get IK control name
 	jointUnderscoreIndexList = []
@@ -813,7 +830,7 @@ def StretchBipedSetup(systemChoice, side, globalControlName, jointPrimaryAxis, j
 		# Connect and calculate distance difference
 		if nodeName[-14:] == 'stretch_divide':
 			cmds.setAttr(f'{nodeName}.operation', 2)
-			cmds.connectAttr('distanceDimension1.distance', f'{nodeName}.input1.input1X')
+			cmds.connectAttr(f'{stretchDistanceShape}.distance', f'{nodeName}.input1.input1X')
 			cmds.setAttr(f'{nodeName}.input2.input2X', limbLength)
 
 		# Connect the distance difference output and ik controls stretch attribute
@@ -841,12 +858,12 @@ def StretchBipedSetup(systemChoice, side, globalControlName, jointPrimaryAxis, j
 	fixGroupName = f'{side.lower()}_{systemChoice[8:].lower()}_stretch_fixGroup'
 	cmds.group(name=fixGroupName, empty=True)
 	cmds.matchTransform(fixGroupName, jointHierarchy[0])
-	cmds.parent('distanceDimension1', 'locator1', 'locator2', fixGroupName)
+	cmds.parent(stretchDistance, stretchStartLoc, stretchEndLoc, fixGroupName)
 
 	# Rename distance measuring nodes
-	cmds.rename('distanceDimension1', f'{side.lower()}_{systemChoice[8:].lower()}_stretch_distance')
-	cmds.rename('locator1', f'{side.lower()}_{systemChoice[8:].lower()}_stretch_distanceStart_loc')
-	cmds.rename('locator2', f'{side.lower()}_{systemChoice[8:].lower()}_stretch_distanceEnd_loc')
+	cmds.rename(stretchDistance, f'{side.lower()}_{systemChoice[8:].lower()}_stretch_distance')
+	cmds.rename(stretchStartLoc, f'{side.lower()}_{systemChoice[8:].lower()}_stretch_distanceStart_loc')
+	cmds.rename(stretchEndLoc, f'{side.lower()}_{systemChoice[8:].lower()}_stretch_distanceEnd_loc')
 
 	# Constraint distance end point to the IK control
 	cmds.pointConstraint(controlName, f'{side.lower()}_{systemChoice[8:].lower()}_stretch_distanceEnd_loc')

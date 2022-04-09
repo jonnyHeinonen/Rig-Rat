@@ -35,14 +35,14 @@ def CreateJoints(*args):
 
 	# Gather UI data
 	jointPrefix = cmds.textFieldGrp('jointPrefix', query=True, text=True)
-	if not jointPrefix == '':
-		jointPrefix = f'{jointPrefix}_'
+	if jointPrefix:
+		jointPrefix = jointPrefix
 	jointDescription = cmds.textFieldGrp('jointDescription', query=True, text=True)
 	if jointDescription == '':
 		jointDescription = 'joint'
 	jointSuffix = cmds.textFieldGrp('jointSuffix', query=True, text=True)
-	if not jointSuffix == '':
-		jointSuffix = f'_{jointSuffix}'
+	if jointSuffix:
+		jointSuffix = jointSuffix
 
 	jointAmount = cmds.intSliderGrp('jointAmount', query=True, value=True)
 	jointSpacing = cmds.floatSliderGrp('jointSpacing', query=True, value=True)

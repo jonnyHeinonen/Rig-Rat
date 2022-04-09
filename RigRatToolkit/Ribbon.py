@@ -123,7 +123,7 @@ def RibbonUiData(*args):
 def CreateRibbon(ribbonName, ribbonLength, ribbonOrientation, ribbonDirection, controlNormal, jointOrientation, jointNumber, addControls, controlColor):
 
 	# Create the nurbs plane
-	cmds.nurbsPlane(name=ribbonName, axis=ribbonOrientation, degree=3, lengthRatio=0.2, patchesU=jointNumber-1, width=ribbonLength, constructionHistory=False)
+	cmds.nurbsPlane(name=ribbonName, axis=ribbonOrientation, degree=3, lengthRatio=0.2, patchesU=jointNumber, width=ribbonLength, constructionHistory=False)
 	cmds.xform(ribbonName, rotation=ribbonDirection, objectSpace=True)
 	cmds.makeIdentity(ribbonName, apply=True)
 
@@ -154,7 +154,7 @@ def CreateRibbon(ribbonName, ribbonLength, ribbonOrientation, ribbonDirection, c
 		cmds.connectAttr(f'{ribbonName}.local', f'{follicleShape}.inputSurface')
 
 		# Place the follicles along the nurbs plane
-		cmds.setAttr(f'{follicleTransform}.parameterU', float(i)/(jointNumber-1))
+		cmds.setAttr(f'{follicleTransform}.parameterU', float(i)/jointNumber+0.5/jointNumber)
 		cmds.setAttr(f'{follicleTransform}.parameterV', 0.5)
 
 		# Create the joints

@@ -18,10 +18,10 @@ from RigRatToolkit.Menu import RigRatAttributes
 # ====================================================================================================================
 #
 # SIGNATURE:
-#	IkFkUiData(*args)
+#	LabelJoints(*args)
 #
 # DESCRIPTION:
-#	
+#	Labels all joints in the scene.
 #
 # REQUIRES:
 # 	Nothing
@@ -30,94 +30,94 @@ from RigRatToolkit.Menu import RigRatAttributes
 #	Nothing
 #
 # ====================================================================================================================
-"""
-def EyelidJoints(*args):
 
-	eyeJoint = cmds.textFieldGrp('eyeJointName', query=True, text=True)
+def LabelJoints(*args):
 
-	# A value of 1=Upper and 2=Lower
-	upperLower = cmds.radioButtonGrp('upperLowerEyelid', query=True, select=True)
-	if upperLower == 1:
-		upperLower = 'Upper'
-	elif upperLower == 2:
-		upperLower = 'Lower'
+	leftPrefix = cmds.textFieldGrp('labelLeftPrefix', query=True, text=True)
+	rightPrefix = cmds.textFieldGrp('labelRightPrefix', query=True, text=True)
 
-	vertecies = cmds.ls(selection=True, flatten=True)
-
-	eyelidGroup = cmds.group(name=f'{eyeJoint[:2]}eyelid{upperLower}Joints_grp', empty=True)
-
-	for vertex in vertecies:
-
-		# Number added to the joint name
-		if vertecies.index(vertex) < 9:
-			jointNumber = '0' + str(vertecies.index(vertex)+1)
-		else:
-			jointNumber = str(vertecies.index(vertex)+1)
-
-		# Create the center joint
-		cmds.select(clear=True)
-		centerJoint = cmds.joint(name=f'{eyeJoint[:2]}eyelid{upperLower}Center{jointNumber}_jnt')
-		pos = cmds.xform(eyeJoint, query=True, worldSpace=True, translation=True)
-		cmds.xform(centerJoint, worldSpace=True, translation=pos)
-
-		# Create the eyelid joint
-		tipJoint = cmds.joint(name=f'{eyeJoint[:2]}eyelid{upperLower}Tip{jointNumber}_jnt')
-		pos = cmds.xform(vertex, query=True, worldSpace=True, translation=True)
-		cmds.xform(tipJoint, worldSpace=True, translation=pos)
-
-		# Orient center joint
-		cmds.joint(centerJoint, edit=True, orientJoint='xyz', secondaryAxisOrient='yup', children=True, zeroScaleOrient=True)
-
-		cmds.parent(centerJoint, eyelidGroup)
-
-def EyelidReorderNumbers(*args):
-
-	selection = cmds.ls(selection=True, long=True)
-
-	number = int(len(selection)/2 + 1)
-	print(number)
+	selection = cmds.ls(type='joint')
 
 	for joint in selection:
 
-		newName = joint.split('|')[-1]
-		print(newName)
+		cmds.setAttr(f'{joint}.type', 18)
 
-		if selection.index(joint) % 2 == 0:
-			number -= 1
+	for joint in selection:
 
-			print(joint)
-		if number < 10:
-			cmds.rename(joint, f'{newName[:-6]}0{str(number)}_jnt')
+		if len(leftPrefix) > 0 and joint[:len(leftPrefix)] == leftPrefix:
+			cmds.setAttr(f'{joint}.side', 1)
+			cmds.setAttr(f'{joint}.otherType', joint[len(leftPrefix):], type='string')
+
+		elif len(rightPrefix) > 0 and joint[:len(rightPrefix)] == rightPrefix:
+			cmds.setAttr(f'{joint}.side', 2)
+			cmds.setAttr(f'{joint}.otherType', joint[len(rightPrefix):], type='string')
 
 		else:
-			cmds.rename(joint, f'{newName[:-6]}{str(number)}_jnt')
+			cmds.setAttr(f'{joint}.side', 0)
+			cmds.setAttr(f'{joint}.otherType', joint, type='string')
 
-	selection = cmds.ls(selection=True, shortNames=True)
+# ====================================================================================================================
+#
+# SIGNATURE:
+#	ConstraintGroups(*args)
+#
+# DESCRIPTION:
+#	Constraint first selection to second selection, eg. select the following in written order: control1 -> control2 -> joint1 -> joint2.
+#	Control 1 is constrained to joint 1 and control 2 to joint 2.
+#
+# REQUIRES:
+# 	Nothing
+#
+# RETURNS:
+#	Nothing
+#
+# ====================================================================================================================
 
-	for joint in selection:
+def ConstraintGroups(*args):
 
-		if joint[-1] == '1':
-			cmds.rename(joint, joint[:-1])
+	selection = cmds.ls(sl=True)
+	halfList = int(len(selection)/2)
 
-def EyelidLocators(*args):
+	constraintType = cmds.optionMenuGrp('constraintGroupType', query=True, value=True)
+	maintainOffset = cmds.checkBox('constraintGroupsOffset', query=True, value=True)
 
-	upObject = cmds.textFieldGrp('eyelidUpObject', query=True, text=True)
+	for index,item in enumerate(selection[:halfList]):
+		if maintainOffset == False:
+			if constraintType == 'Parent':
+				cmds.parentConstraint(item, selection[index+halfList], maintainOffset=False)
+			elif constraintType == 'Point':
+				cmds.pointConstraint(item, selection[index+halfList], maintainOffset=False)
+			elif constraintType == 'Orient':
+				cmds.orientConstraint(item, selection[index+halfList], maintainOffset=False)
+		else:
+			if constraintType == 'Parent':
+				cmds.parentConstraint(item, selection[index+halfList], maintainOffset=True)
+			elif constraintType == 'Point':
+				cmds.pointConstraint(item, selection[index+halfList], maintainOffset=True)
+			elif constraintType == 'Orient':
+				cmds.orientConstraint(item, selection[index+halfList], maintainOffset=True)
 
-	selection = cmds.ls(selection=True)
+# ====================================================================================================================
+#
+# SIGNATURE:
+#	ParentGroups(*args)
+#
+# DESCRIPTION:
+#	Parents first selection to second selection, eg. select the following in written order: control1 -> control2 -> joint1 -> joint2.
+#	Control 1 is parented to joint 1 and control 2 to joint 2.
+#
+# REQUIRES:
+# 	Nothing
+#
+# RETURNS:
+#	Nothing
+#
+# ====================================================================================================================
 
-	locatorGroup = cmds.group(name=f'{selection[0][:13]}Locator_grp', empty=True)
+def ParentGroups(*args):
 
-	for joint in selection:
+	selection = cmds.ls(sl=True)
+	halfList = int(len(selection)/2)
 
-		locator = cmds.spaceLocator(name=f'{joint[:13]}{joint[16:19]}loc')[0]
-		pos = cmds.xform(joint, query=True, worldSpace=True, translation=True)
-		cmds.xform(locator, worldSpace=True, translation=pos)
-
-		jointParent = cmds.listRelatives(joint, parent=True)[0]
-
-		cmds.aimConstraint(locator, jointParent, maintainOffset=True, weight=1, aimVector=(1,0,0), upVector=(0,1,0), worldUpType='object', worldUpObject=upObject)
-
-		cmds.parent(locator, locatorGroup)
-
-	cmds.select(clear=True)
-"""
+	for index,item in enumerate(selection[:halfList]):
+		cmds.parent(item, selection[index+halfList])

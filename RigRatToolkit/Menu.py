@@ -49,8 +49,8 @@ import maya.cmds as cmds
 from RigRatToolkit.Controls import *
 from RigRatToolkit.Joints import *
 from RigRatToolkit.IkFk import IkFkUiData
-from RigRatToolkit.Experimental import *
 from RigRatToolkit.Ribbon import RibbonUiData
+from RigRatToolkit.Experimental import *
 
 # ====================================================================================================================
 #
@@ -92,8 +92,9 @@ def Window():
 	cmds.textFieldGrp('controlName', label='Control Name:	', placeholderText='c_cog_ctrl', columnWidth2=(95,230))
 	cmds.text('controlAimText', label='Control Aim Axis:')
 	cmds.radioButtonGrp('controlAim', numberOfRadioButtons=3, labelArray3=('X','Y','Z'), select=1, columnWidth3=(40,40,40))
-	cmds.colorIndexSliderGrp('controlColor', label='Control Color	', columnWidth3=(94,80,100), width=350, min=0, max=20, value=6)
+	cmds.colorIndexSliderGrp('controlColor', label='Control Color	', changeCommand=UpdateControlColor, columnWidth3=(94,80,100), width=350, min=0, max=20, value=6)
 	cmds.button('updateControlColor', label="Update Selected's Color", command=UpdateControlColor)
+	cmds.checkBox('updateControlColorLive', label='Update Live', value=1, changeCommand=UpdateControlColorLive)
 	cmds.floatSliderGrp('controlSize', label='Control Size	', field=True, columnWidth3=(93,40,10), min=0.01, max=20, fieldMaxValue=100, value=1, changeCommand=DoNothing)
 	cmds.button('updateControlSize', label="Update Selected's Size", command=UpdateControlSize)
 	cmds.checkBox('updateControlSizeLive', label='Update Live', changeCommand=UpdateControlSizeLive)
@@ -143,6 +144,9 @@ def Window():
 																		('updateControlColor', 'top', 125),
 																		('updateControlColor', 'left', 97),
 
+																		('updateControlColorLive', 'top', 128),
+																		('updateControlColorLive', 'left', 240),
+
 																		('controlSize', 'top', 160),
 																		('controlSize', 'left', 0),
 																		('controlSize', 'right', 5),
@@ -151,7 +155,7 @@ def Window():
 																		('updateControlSize', 'left', 97),
 
 																		('updateControlSizeLive', 'top', 188),
-																		('updateControlSizeLive', 'left', 235),
+																		('updateControlSizeLive', 'left', 240),
 
 																		('shape01', 'top', 225),
 																		('shape01', 'left', 60),
@@ -239,7 +243,7 @@ def Window():
 	cmds.menuItem(label='zyx')
 	cmds.button('buildJoints', label="Create Joints", width=108, command=CreateJoints)
 	cmds.separator('separator02', height=10)
-	cmds.text('locatorJointOnCenter', label='Place at center of selected object(s)/components')
+	cmds.text('locatorJointOnCenter', label='Placed at center of selected object(s)/components')
 	cmds.optionMenuGrp('jointOnCenterRotationOrder', label='Rotation Order', enable=False, columnWidth=(1,120))
 	cmds.menuItem(label='xyz')
 	cmds.menuItem(label='yzx')
@@ -251,7 +255,7 @@ def Window():
 							onCommand2=LocatorOrJointOnCenter, offCommand2=LocatorOrJointOnCenter)
 	cmds.textFieldGrp('locatorJointName', label='Name:	', columnWidth2=(75,225))
 	cmds.button('buildLocatorOrJoint', label="Create Locator/Joint", width=108, command=CreateLocatorJointOnCenter)
-	cmds.text('jointsTooltip', label='Tooltip')
+	cmds.text('jointsTooltip', font='boldLabelFont', label='Tooltip')
 	cmds.text('jointsTooltipContent1', wordWrap=True, label='If joints created with this tool disappear:')
 	cmds.text('jointsTooltipContent2', wordWrap=True, label="Create a joint with Maya's own tool.")
 	cmds.text('jointsTooltipContent3', wordWrap=True, label='Tends to happen when origo is not in the viewport')
@@ -478,12 +482,13 @@ def Window():
 	cmds.checkBox('invertJointPrimaryAxis', label='Invert')
 	cmds.colorIndexSliderGrp('ikFkControlColor', label='Control Color	', columnWidth3=(90,80,100), width=350, min=0, max=20, value=6)
 	cmds.floatSliderGrp('ikFkControlSize', label='Control Size	', field=True, columnWidth3=(90,40,10), min=1, max=20, fieldMaxValue=100, value=1)
+	cmds.textFieldGrp('constraintSystemTo', label='Constraint System To:', placeholderText='None', columnWidth2=(129,200))
 	cmds.button('buildIkFk', label="Build FK or IK/FK", width=108, command=IkFkUiData)
-	cmds.text('limbTooltip', label='Tooltip')
-	cmds.text('limbTooltipContent1', wordWrap=True, label='The joints require a prefix and suffix indicated with an an "_"')
+	cmds.text('limbTooltip', font='boldLabelFont', label='Tooltip')
+	cmds.text('limbTooltipContent1', wordWrap=True, label='The joints require a prefix and suffix indicated with an "_"')
 	cmds.text('limbTooltipContent2', wordWrap=True, label='Eg. "l_armUpper_jnt"')
 	cmds.text('limbTooltipContent3', wordWrap=True, label='Select the first and last joint in the limb chain.')
-	cmds.text('limbTooltipContent4', wordWrap=True, label='Eg. the left upper arm and left wrist.')
+	cmds.text('limbTooltipContent4', wordWrap=True, label='Eg. the upper arm and wrist.')
 
 	limbTab = cmds.formLayout( 'limbForm', edit=True, attachForm=[
 																	('separator01', 'top', 0),
@@ -532,40 +537,35 @@ def Window():
 																	('ikFkControlSize', 'left', 0),
 																	('ikFkControlSize', 'right', 5),
 
-																	('buildIkFk', 'top', 325),
+																	('constraintSystemTo', 'top', 325),
+																	('constraintSystemTo', 'left', 0),
+
+																	('buildIkFk', 'top', 355),
 																	('buildIkFk', 'left', 20),
 																	('buildIkFk', 'right', 20),
 
-																	('limbTooltip', 'top', 385),
+																	('limbTooltip', 'top', 400),
 																	('limbTooltip', 'left', 20),
 																	('limbTooltip', 'right', 20),
 
-																	('limbTooltipContent1', 'top', 405),
+																	('limbTooltipContent1', 'top', 420),
 																	('limbTooltipContent1', 'left', 20),
 																	('limbTooltipContent1', 'right', 20),
 
-																	('limbTooltipContent2', 'top', 420),
+																	('limbTooltipContent2', 'top', 435),
 																	('limbTooltipContent2', 'left', 20),
 																	('limbTooltipContent2', 'right', 20),
 
-																	('limbTooltipContent3', 'top', 440),
+																	('limbTooltipContent3', 'top', 455),
 																	('limbTooltipContent3', 'left', 20),
 																	('limbTooltipContent3', 'right', 20),
 
-																	('limbTooltipContent4', 'top', 455),
+																	('limbTooltipContent4', 'top', 470),
 																	('limbTooltipContent4', 'left', 20),
 																	('limbTooltipContent4', 'right', 20)
 																	] )
 	cmds.setParent( '..' )
-	'''
-	# -------------------------------------------------------------------------------------------------------------------
-	# Addon tab layout
-	cmds.formLayout('addonForm')
-
-	cmds.button('testAddon', label='testAddon')
-	addonTab = cmds.formLayout( 'addonForm', edit=True, attachForm=[('testAddon', 'left', 0), ('testAddon', 'top', 0)] )
-	cmds.setParent( '..' )
-	'''
+	
 	# -------------------------------------------------------------------------------------------------------------------
 	# Ribbon tab layout
 	cmds.formLayout('ribbonForm')
@@ -637,8 +637,159 @@ def Window():
 	cmds.setParent( '..' )
 
 	# -------------------------------------------------------------------------------------------------------------------
+	# Experimental tab layout
+	cmds.formLayout('experimentalForm')
+
+	cmds.separator('separator01', height=10, style='in')
+
+	# Label joints in the scene
+	cmds.text('labelJointsText', label='Label all joints according to their name.\n'
+										'Removes the chosen prefix from the label.')
+	cmds.textFieldGrp('labelLeftPrefix', label='Left Prefix:	', placeholderText='l_', columnWidth2=(105,225))
+	cmds.textFieldGrp('labelRightPrefix', label='Right Prefix:	', placeholderText='r_', columnWidth2=(105,225))
+	cmds.button('labelJoints', label="Label Joints", width=108, command=LabelJoints)
+	cmds.separator('separator02', height=10)
+
+	# Constraint group 1 to group 2
+	cmds.text('constraintGroupText', label='Constraint first selection to second selection.\n'
+										'See help tab for more info.')
+	cmds.optionMenuGrp('constraintGroupType', label='Constraint Type', columnWidth=(1,110))
+	cmds.menuItem(label='Parent')
+	cmds.menuItem(label='Point')
+	cmds.menuItem(label='Orient')
+	cmds.checkBox('constraintGroupsOffset', label='Maintain Offset')
+	cmds.button('constraintGroups', label="Constraint Selected Groups", width=108, command=ConstraintGroups)
+	cmds.separator('separator03', height=10)
+
+	# Parent group 1 to group 2
+	cmds.text('parentGroupText', label='Parent first selection to second selection.\n'
+										'See help tab for more info.')
+	cmds.button('parentGroups', label="Parent Selected Groups", width=108, command=ParentGroups)
+
+	experimentalTab = cmds.formLayout( 'experimentalForm', edit=True, attachForm=[
+																				('separator01', 'top', 0),
+																				('separator01', 'left', 0),
+																				('separator01', 'right', 0),
+
+																				# Label joints in the scene
+
+																				('labelJointsText', 'top', 10),
+																				('labelJointsText', 'left', 0),
+																				('labelJointsText', 'right', 0),
+
+																				('labelLeftPrefix', 'top', 40),
+																				('labelLeftPrefix', 'left', 0),
+
+																				('labelRightPrefix', 'top', 60),
+																				('labelRightPrefix', 'left', 0),
+
+																				('labelJoints', 'top', 90),
+																				('labelJoints', 'left', 20),
+																				('labelJoints', 'right', 20),
+
+																				('separator02', 'top', 120),
+																				('separator02', 'left', 5),
+																				('separator02', 'right', 5),
+
+																				# Constraint group 1 to group 2
+
+																				('constraintGroupText', 'top', 135),
+																				('constraintGroupText', 'left', 0),
+																				('constraintGroupText', 'right', 0),
+
+																				('constraintGroupType', 'top', 165),
+																				('constraintGroupType', 'left', 0),
+																				('constraintGroupType', 'right', 0),
+
+																				('constraintGroupsOffset', 'top', 168),
+																				('constraintGroupsOffset', 'left', 215),
+
+																				('constraintGroups', 'top', 195),
+																				('constraintGroups', 'left', 20),
+																				('constraintGroups', 'right', 20),
+
+																				('separator03', 'top', 225),
+																				('separator03', 'left', 5),
+																				('separator03', 'right', 5),
+
+																				# Parent group 1 to group 2
+
+																				('parentGroupText', 'top', 240),
+																				('parentGroupText', 'left', 0),
+																				('parentGroupText', 'right', 0),
+
+																				('parentGroups', 'top', 270),
+																				('parentGroups', 'left', 20),
+																				('parentGroups', 'right', 20)
+																				] )
+	cmds.setParent( '..' )
+
+	# -------------------------------------------------------------------------------------------------------------------
+	# Help tab layout
+	cmds.formLayout('helpForm')
+
+	cmds.separator('separator01', height=10, style='in')
+	cmds.button('controlsTab', label="Controls Tab", width=108, command=ControlsHelp)
+	cmds.button('jointsTab', label="Joints Tab", width=108, command=JointsHelp)
+	cmds.button('limbTab', label="Limb Tab", width=108, command=LimbHelp)
+	cmds.button('ribbonTab', label="Ribbon Tab", width=108, command=RibbonHelp)
+	cmds.button('experimentalTab', label="Experimental Tab", width=108, command=ExperimentalHelp)
+	cmds.text('generalTips', font='boldLabelFont', label='General Tips')
+	cmds.text('textFields', label='All text fields can be left empty.')
+	cmds.text('contactMe', font='boldLabelFont', label='Contact Me')
+	cmds.text('contactInfo1', label="I will gladly talk about this or other tools,\nimprovements and ideas in general :)")
+	cmds.text('contactInfo2', font='boldLabelFont', label='jonnyheinonen.com')
+
+	helpTab = cmds.formLayout( 'helpForm', edit=True, attachForm=[
+																	('separator01', 'top', 0),
+																	('separator01', 'left', 0),
+																	('separator01', 'right', 0),
+
+																	('controlsTab', 'top', 15),
+																	('controlsTab', 'left', 20),
+																	('controlsTab', 'right', 20),
+
+																	('jointsTab', 'top', 65),
+																	('jointsTab', 'left', 20),
+																	('jointsTab', 'right', 20),
+
+																	('limbTab', 'top', 115),
+																	('limbTab', 'left', 20),
+																	('limbTab', 'right', 20),
+
+																	('ribbonTab', 'top', 165),
+																	('ribbonTab', 'left', 20),
+																	('ribbonTab', 'right', 20),
+
+																	('experimentalTab', 'top', 215),
+																	('experimentalTab', 'left', 20),
+																	('experimentalTab', 'right', 20),
+
+																	('generalTips', 'top', 265),
+																	('generalTips', 'left', 20),
+																	('generalTips', 'right', 20),
+
+																	('textFields', 'top', 280),
+																	('textFields', 'left', 20),
+																	('textFields', 'right', 20),
+
+																	('contactMe', 'top', 365),
+																	('contactMe', 'left', 20),
+																	('contactMe', 'right', 20),
+
+																	('contactInfo1', 'top', 380),
+																	('contactInfo1', 'left', 20),
+																	('contactInfo1', 'right', 20),
+
+																	('contactInfo2', 'top', 425),
+																	('contactInfo2', 'left', 20),
+																	('contactInfo2', 'right', 20)
+																	] )
+	cmds.setParent( '..' )
+
+	# -------------------------------------------------------------------------------------------------------------------
 	# Add the layouts to one tab each
-	cmds.tabLayout( tabs, edit=True, tabLabel=((controlTab, 'Controls'), (jointTab, 'Joints'), (limbTab, 'Limb'), (ribbonTab, 'Ribbon')) )
+	cmds.tabLayout( tabs, edit=True, tabLabel=((controlTab, 'Controls'), (jointTab, 'Joints'), (limbTab, 'Limb'), (ribbonTab, 'Ribbon'), (experimentalTab, 'Experimental'), (helpTab, 'Help')) )
 
 	# Show the window
 	cmds.showWindow(window)
@@ -683,6 +834,13 @@ def Window():
 # ====================================================================================================================
 
 # Controls tab query
+def UpdateControlColorLive(onOff=1):
+
+	if onOff == 1:
+		cmds.colorIndexSliderGrp('controlColor', edit=True, changeCommand=UpdateControlColor)
+	elif onOff == 0:
+		cmds.colorIndexSliderGrp('controlColor', edit=True, changeCommand=DoNothing)
+
 def UpdateControlSizeLive(onOff=1):
 
 	if onOff == 1:
@@ -838,3 +996,256 @@ def AddControls(onOff=1):
 		cmds.colorIndexSliderGrp('ribbonControlColor', edit=True, enable=True)
 	elif onOff == 0:
 		cmds.colorIndexSliderGrp('ribbonControlColor', edit=True, enable=False)
+
+# ====================================================================================================================
+#
+# SIGNATURES:
+#	ControlsHelp(*args)
+#	JointsHelp(*args)
+#	LimbHelp(*args)
+#	RibbonHelp(*args)
+#	ExperimentalHelp(*args)
+#
+# DESCRIPTION:
+#	Creates a window with help text.
+# 
+# REQUIRES:
+# 	Nothing
+#
+# RETURNS:
+#	Nothing
+#
+# NOTES:
+#	Spacing of 30 to a new category + 10 per line of text in the previous category
+#
+# ====================================================================================================================
+
+def ControlsHelp(*args):
+	if cmds.window('controlsHelpWindow', exists=True):
+		cmds.deleteUI('controlsHelpWindow')
+
+	controlsHelpWindow = cmds.window('controlsHelpWindow', title='Controls Help', width=720, height=365, sizeable=False)
+
+	cmds.formLayout('controlsHelpForm', numberOfDivisions=100)
+
+	cmds.text('creating1', wordWrap=False, font='boldLabelFont', label='CREATING')
+	cmds.text('creating2', wordWrap=False, label=
+		'A control of the desired shape is created for each selected object, placed at and named based on the object.\n'
+		'If nothing is selected, one control is created at origo.')
+	cmds.text('color1', wordWrap=False, font='boldLabelFont', label='COLOR')
+	cmds.text('color2', wordWrap=False, label=
+		'The control color "Update Live" checkbox enables the color to be updated at the release of the slider.')
+	cmds.text('scaling1', wordWrap=False, font='boldLabelFont', label='SCALING')
+	cmds.text('scaling2', wordWrap=False, label=
+		'The control size "Update Live" checkbox enables the size to be updated at the release of the slider.\n\n'
+		'A control with multiple shapes can currently not update its size.')
+	cmds.text('replace1', wordWrap=False, font='boldLabelFont', label='REPLACING SHAPES')
+	cmds.text('replace2', wordWrap=False, label=
+		"The control's shapes can't share the same name.\n\n"
+		'Make sure both controls are in the same position in world space and are zeroed out (frozen).\nThe resulting control could become invisible when executing the script, but moving it and undoing the movement should make it visible.')
+	cmds.text('other1', wordWrap=False, font='boldLabelFont', label='OTHER')
+	cmds.text('other2', wordWrap=False, label=
+		'''"Select Control CV's" puts the user in component selection mode.\n\n'''
+		"The snapping options work like constraints but don't maintain a connection between the objects.")
+
+	cmds.formLayout('controlsHelpForm', edit=True, attachForm=[
+															('creating1', 'top', 10),
+															('creating1', 'left', 0),
+															('creating1', 'right', 0),
+
+															('creating2', 'top', 25),
+															('creating2', 'left', 0),
+															('creating2', 'right', 0),
+
+															('color1', 'top', 75),
+															('color1', 'left', 0),
+															('color1', 'right', 0),
+
+															('color2', 'top', 90),
+															('color2', 'left', 0),
+															('color2', 'right', 0),
+
+															('scaling1', 'top', 130),
+															('scaling1', 'left', 0),
+															('scaling1', 'right', 0),
+
+															('scaling2', 'top', 145),
+															('scaling2', 'left', 0),
+															('scaling2', 'right', 0),
+
+															('replace1', 'top', 205),
+															('replace1', 'left', 0),
+															('replace1', 'right', 0),
+
+															('replace2', 'top', 220),
+															('replace2', 'left', 0),
+															('replace2', 'right', 0),
+
+															('other1', 'top', 290),
+															('other1', 'left', 0),
+															('other1', 'right', 0),
+
+															('other2', 'top', 305),
+															('other2', 'left', 0),
+															('other2', 'right', 0)
+															])
+	cmds.showWindow(controlsHelpWindow)
+
+def JointsHelp(*args):
+	if cmds.window('jointsHelpWindow', exists=True):
+		cmds.deleteUI('jointsHelpWindow')
+
+	jointsHelpWindow = cmds.window('jointsHelpWindow', title='Joints Help', width=440, height=200, sizeable=False)
+
+	cmds.formLayout('jointsHelpForm', numberOfDivisions=100)
+
+	cmds.text('creatingFirst1', wordWrap=False, font='boldLabelFont', label='CREATE JOINTS')
+	cmds.text('creatingFirst2', wordWrap=False, label=
+		'"Joint Spacing" is the distance between each joint when created.\n\n'
+		'"Spacing Direction" is the world axis that the joint chain will build along.')
+	cmds.text('creatingSecond1', wordWrap=False, font='boldLabelFont', label='CREATE LOCATOR/JOINT')
+	cmds.text('creatingSecond2', wordWrap=False, label=
+		'Places a locator or joint at the center of your object or component selection.')
+	cmds.text('tooltip1', wordWrap=False, font='boldLabelFont', label='GENERAL TIP')
+	cmds.text('tooltip2', wordWrap=False, label=
+		"If joints created with this tool disappear: Create a joint with Maya's own tool.\n"
+		"This tends to happen when origo is not in the viewport until Maya's tool is used.")
+
+	cmds.formLayout('jointsHelpForm', edit=True, attachForm=[
+															('creatingFirst1', 'top', 10),
+															('creatingFirst1', 'left', 0),
+															('creatingFirst1', 'right', 0),
+
+															('creatingFirst2', 'top', 25),
+															('creatingFirst2', 'left', 0),
+															('creatingFirst2', 'right', 0),
+
+															('creatingSecond1', 'top', 85),
+															('creatingSecond1', 'left', 0),
+															('creatingSecond1', 'right', 0),
+
+															('creatingSecond2', 'top', 100),
+															('creatingSecond2', 'left', 0),
+															('creatingSecond2', 'right', 0),
+
+															('tooltip1', 'top', 140),
+															('tooltip1', 'left', 0),
+															('tooltip1', 'right', 0),
+
+															('tooltip2', 'top', 155),
+															('tooltip2', 'left', 0),
+															('tooltip2', 'right', 0)
+															])
+	cmds.showWindow(jointsHelpWindow)
+
+def LimbHelp(*args):
+	if cmds.window('limbHelpWindow', exists=True):
+		cmds.deleteUI('limbHelpWindow')
+
+	limbHelpWindow = cmds.window('limbHelpWindow', title='Limb Help', width=655, height=290, sizeable=False)
+
+	cmds.formLayout('limbHelpForm', numberOfDivisions=100)
+
+	cmds.text('howTo1', wordWrap=False, font='boldLabelFont', label='HOW TO')
+	cmds.text('howTo2', wordWrap=False, label=
+		'Select the first and last joint in a chain that you want to build the system on.\n'
+		'The joints require a prefix and suffix indicated with an underscore, eg. "l_wrist_jnt".\n\n'
+		'The joint primary axis is used to align controls during creation.\n\n'
+		'"Constraint System To" will be the object that drives the fk or ik/fk system, eg. the clavicle when creating an arm.')
+	cmds.text('fk1', wordWrap=False, font='boldLabelFont', label='FK')
+	cmds.text('fk2', wordWrap=False, label=
+		"The FK system currently needs a start and an end and therefore can't build an FK system for a single joint.")
+	cmds.text('ikFk1', wordWrap=False, font='boldLabelFont', label='IK/FK')
+	cmds.text('ikFk2', wordWrap=False, label=
+		'"Limb Type" for now only changes the attributes given to objects of the system, as quadruped limbs are yet to be supported.\n'
+		'Same goes for "Side / Center".')
+	cmds.text('twist1', wordWrap=False, font='boldLabelFont', label='TWIST')
+	cmds.text('twist2', wordWrap=False, label=
+		'The twist amount for each twist joint can be changed on the global control.')
+
+	cmds.formLayout('limbHelpForm', edit=True, attachForm=[
+															('howTo1', 'top', 10),
+															('howTo1', 'left', 0),
+															('howTo1', 'right', 0),
+
+															('howTo2', 'top', 25),
+															('howTo2', 'left', 0),
+															('howTo2', 'right', 0),
+
+															('fk1', 'top', 125),
+															('fk1', 'left', 0),
+															('fk1', 'right', 0),
+
+															('fk2', 'top', 140),
+															('fk2', 'left', 0),
+															('fk2', 'right', 0),
+
+															('ikFk1', 'top', 180),
+															('ikFk1', 'left', 0),
+															('ikFk1', 'right', 0),
+
+															('ikFk2', 'top', 195),
+															('ikFk2', 'left', 0),
+															('ikFk2', 'right', 0),
+
+															('twist1', 'top', 245),
+															('twist1', 'left', 0),
+															('twist1', 'right', 0),
+
+															('twist2', 'top', 260),
+															('twist2', 'left', 0),
+															('twist2', 'right', 0)
+															])
+	cmds.showWindow(limbHelpWindow)
+
+def RibbonHelp(*args):
+	if cmds.window('ribbonHelpWindow', exists=True):
+		cmds.deleteUI('ribbonHelpWindow')
+
+	ribbonHelpWindow = cmds.window('ribbonHelpWindow', title='Ribbon Help', width=575, height=120, sizeable=False)
+
+	cmds.formLayout('ribbonHelpForm', numberOfDivisions=100)
+
+	cmds.text('howTo1', wordWrap=False, font='boldLabelFont', label='HOW TO')
+	cmds.text('howTo2', wordWrap=False, label=
+		'"Ribbon Facing Orientetion" is the world axis that the nurbs face will be facing.\n\n'
+		'"Ribbon Direction" is the direction based on the "Ribbon Facing Orientation",\n'
+		'eg. going up/down or left/right when looking in the world axis the user have chosen.\n\n'
+		'Controls are added to the start and end of the ribbon, and the middle when using an odd number of joints.')
+
+	cmds.formLayout('ribbonHelpForm', edit=True, attachForm=[
+															('howTo1', 'top', 10),
+															('howTo1', 'left', 0),
+															('howTo1', 'right', 0),
+
+															('howTo2', 'top', 25),
+															('howTo2', 'left', 0),
+															('howTo2', 'right', 0)
+															])
+	cmds.showWindow(ribbonHelpWindow)
+
+def ExperimentalHelp(*args):
+	if cmds.window('experimentalHelpWindow', exists=True):
+		cmds.deleteUI('experimentalHelpWindow')
+
+	experimentalHelpWindow = cmds.window('experimentalHelpWindow', title='Experimental Help', width=300, height=530, sizeable=False)
+
+	cmds.formLayout('experimentalHelpForm', numberOfDivisions=100)
+
+	cmds.text('groupConstrantOrParent1', wordWrap=False, font='boldLabelFont', label='GROUP CONSTRAINING / PARENTING')
+	cmds.text('groupConstrantOrParent2', wordWrap=False, label=
+		'Constraints / parents the first half of your selection to the second half of your selection. One for one in order.\n\n'
+		'If you select "control 1", "control 2", "joint 1" and "joint 2" in this order,\n'
+		'then "control 1" will be constrained / parented to "joint 1"\n'
+		'and "control 2" will be constrained / parented to joint 2".')
+
+	cmds.formLayout('experimentalHelpForm', edit=True, attachForm=[
+															('groupConstrantOrParent1', 'top', 10),
+															('groupConstrantOrParent1', 'left', 0),
+															('groupConstrantOrParent1', 'right', 0),
+
+															('groupConstrantOrParent2', 'top', 25),
+															('groupConstrantOrParent2', 'left', 0),
+															('groupConstrantOrParent2', 'right', 0)
+															])
+	cmds.showWindow(experimentalHelpWindow)

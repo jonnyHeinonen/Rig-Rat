@@ -301,24 +301,24 @@ def UpdateControlSize(*args):
 
 def replaceControlShape(*args):
 
-	tooltipCheck = cmds.framelessDialog( title='Confirm', button=['OK', 'CANCEL'], primary=['OK'],
-		message='Make sure both controls are in the same position in world space and are zeroed out (frozen).\n\nThe resulting control could become invisible when executing the script, but moving it and undoing the movement should make it visible.')
+	#tooltipCheck = cmds.framelessDialog( title='Confirm', button=['OK', 'CANCEL'], primary=['OK'],
+		#message='Make sure both controls are in the same position in world space and are zeroed out (frozen).\n\nThe resulting control could become invisible when executing the script, but moving it and undoing the movement should make it visible.')
 
-	if tooltipCheck == 'CANCEL':
-		sys.exit()
-	elif tooltipCheck == 'OK':
+	#if tooltipCheck == 'CANCEL':
+		#sys.exit()
+	#elif tooltipCheck == 'OK':
 		# selection[0] is the new control and selection[1] is the one to be replaced
-		selection = cmds.ls(selection=True, transforms=True)
-		cmds.matchTransform(selection[0], selection[1])
+	selection = cmds.ls(selection=True, transforms=True)
+	cmds.matchTransform(selection[0], selection[1])
 
-		for item in selection:
-			cmds.makeIdentity(item, apply=True)
+	for item in selection:
+		cmds.makeIdentity(item, apply=True)
 
-		newShapes = cmds.listRelatives(selection[0])
-		oldShapes = cmds.listRelatives(selection[1])
+	newShapes = cmds.listRelatives(selection[0])
+	oldShapes = cmds.listRelatives(selection[1])
 
-		cmds.parent(newShapes, selection[1], relative=True, shape=True)
-		cmds.delete(selection[0], oldShapes)
+	cmds.parent(newShapes, selection[1], relative=True, shape=True)
+	cmds.delete(selection[0], oldShapes)
 
 # ====================================================================================================================
 #
