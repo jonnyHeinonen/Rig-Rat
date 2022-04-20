@@ -1228,7 +1228,7 @@ def ExperimentalHelp(*args):
 	if cmds.window('experimentalHelpWindow', exists=True):
 		cmds.deleteUI('experimentalHelpWindow')
 
-	experimentalHelpWindow = cmds.window('experimentalHelpWindow', title='Experimental Help', width=300, height=530, sizeable=False)
+	experimentalHelpWindow = cmds.window('experimentalHelpWindow', title='Experimental Help', width=580, height=104, sizeable=False)
 
 	cmds.formLayout('experimentalHelpForm', numberOfDivisions=100)
 
