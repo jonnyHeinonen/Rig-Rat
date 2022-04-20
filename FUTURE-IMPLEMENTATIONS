@@ -1,0 +1,14 @@
+MAJOR UPDATES
+  - Ability to build a ribbon from a selection of edges/faces.
+  - Ability to build a ribbon along a joint chain.
+  - Quadruped support for the Limb feature.
+  - UI built with QT.
+
+MINOR UPDATES
+  - Twist joints option for FK limbs.
+  - Remove the prefix and suffix requirement for the Limb feature.
+
+BUGS TO FIX
+  - The FK Limb feature can't be built on a single joint.
+  - Controls with multiple shape nodes can't be scaled.
+  - Controls which shapes are replaced can't share the same name with the new shape.
