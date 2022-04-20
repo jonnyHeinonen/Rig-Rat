@@ -1,5 +1,8 @@
 #----------------------------------------------------------------------------------------------------------------------------
 #
+# My vision for this project is to create a toolkit of commonly used rigging processes. Making the rigging features modular
+# and eventually building an animation toolkit with seamless compatibility.
+#
 # To use this toolkit -
 #
 # - Put the "RigRatToolkit" folder in your scripts folder, eg. \Documents\maya\2022\scripts
@@ -8,18 +11,17 @@
 #
 #----------------------------------------------------------------------------------------------------------------------------
 
-# IMPORT FOLDER
+# IMPORT TOOLKIT FOLDER
 import maya.utils
 maya.utils.executeDeferred('import RigRatToolkit')
 
 # IMPORT IMPORT LIBRARY
 import importlib
 
-# IMPORT THIS MODULE
+# IMPORT MODULES
 import RigRatToolkit.Menu
 importlib.reload(RigRatToolkit.Menu)
 
-# IMPORT OTHER MODULES
 import RigRatToolkit.Controls
 importlib.reload(RigRatToolkit.Controls)
 
